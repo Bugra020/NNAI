@@ -81,6 +81,5 @@ for team in teamsData.keys():
     print(f"{team}\n")
     for row in range(1, 21):
         result = rows[row].find("td", class_="center")
-        print(f"{result.text} ")
-    print("\n" * 2)
-    time.sleep(0.5)
+        print(result.text)
+    time.sleep(0.1)

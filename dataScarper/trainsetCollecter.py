@@ -71,7 +71,6 @@ EPL_dict = {
 }
 
 # getting the last 20 matches' result data for each team
-
 for team in teamsData.keys():
     page = requests.get(EPL_dict.get(team))
     soup = BeautifulSoup(page.content, "html.parser")
@@ -81,5 +80,5 @@ for team in teamsData.keys():
     print(f"{team}\n")
     for row in range(1, 21):
         result = rows[row].find("td", class_="center")
-        print(result.text)
+        print(result.text),
     time.sleep(0.1)

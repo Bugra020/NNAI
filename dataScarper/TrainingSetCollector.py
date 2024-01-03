@@ -57,13 +57,14 @@ URL_dict = {
     "Aston Villa": "https://fbref.com/en/squads/8602292d/2023-2024/matchlogs/c9/schedule/Aston-Villa-Scores-and-Fixtures-Premier-League"
 }
 
+
 def get_datas():
     for team in teamsData_dict.keys():
         page = requests.get(URL_dict.get(team))
         soup = BeautifulSoup(page.content, "html.parser")
         table = soup.find("table", id="matchlogs_for")
         rows = table.find_all("tr")
-        #print(rows)
+        # print(rows)
 
         # getting the last 20 matches' result data for each team
         print(f"\n{team}")
@@ -80,7 +81,7 @@ def get_datas():
             print(result.text, end=" "),
         time.sleep(0.1)
 
-        #getting the scored goals for every match
+        # getting the scored goals for every match
         print("")
         for row in range(1, 21):
             result = rows[row].find_all("td", class_="right")

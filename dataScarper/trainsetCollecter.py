@@ -5,26 +5,13 @@ from bs4 import BeautifulSoup
 
 """
 dict for every team has an array of data
-[0:20] = results of last 20 matches (-1 = L, D = 0, W = 1) last match -> first match
-[21:40] = scored goals for every last matches
-[41:60] = away goals for every last matches
-[61:80] = home or away for last 20 matches (-1 = A, 1 = H)
-"""
-"""
-r = requests.get('https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures')
-print(r.content)
-page = requests.get(f"https://fbref.com/en/squads/18bb7c10/2023-2024/c9/Arsenal-Stats-Premier-League")
-soup = BeautifulSoup(page.content, "html.parser")
-table = soup.find("table", id="matchlogs_for")
-matchResults = table.find_all("td", class_="center", csk="3")
-
-rows = table.find_all("tr")
-for row in range(1, 21):
-    result = rows[row].find("td", class_="center")
-    print(result.text, end="\n")
+[0:20] = results of last 20 matches (-1 = L, D = 0, W = 1). last match -> first match
+[21:40] = scored goals for every last matches. last match -> first match
+[41:60] = away goals for every last matches. last match -> first match
+[61:80] = home or away for last 20 matches (-1 = Away, 1 = Home). last match -> first match
 """
 
-teamsData = {
+teamsData_dict = {
     "Tottenham Hotspur": [],
     "Everton": [],
     "Liverpool": [],
@@ -47,7 +34,7 @@ teamsData = {
     "Aston Villa": []
 }
 
-EPL_dict = {
+URL_dict = {
     "Tottenham Hotspur": "https://fbref.com/en/squads/361ca564/2023-2024/matchlogs/c9/schedule/Tottenham-Hotspur-Scores-and-Fixtures-Premier-League",
     "Everton": "https://fbref.com/en/squads/d3fd31cc/2023-2024/matchlogs/c9/schedule/Everton-Scores-and-Fixtures-Premier-League",
     "Liverpool": "https://fbref.com/en/squads/822bd0ba/2023-2024/matchlogs/c9/schedule/Liverpool-Scores-and-Fixtures-Premier-League",
@@ -70,26 +57,59 @@ EPL_dict = {
     "Aston Villa": "https://fbref.com/en/squads/8602292d/2023-2024/matchlogs/c9/schedule/Aston-Villa-Scores-and-Fixtures-Premier-League"
 }
 
-# getting the last 20 matches' result data for each team
-for team in teamsData.keys():
-    page = requests.get(EPL_dict.get(team))
-    soup = BeautifulSoup(page.content, "html.parser")
-    table = soup.find("table", id="matchlogs_for")
-    rows = table.find_all("tr")
-    #print(rows)
+def get_datas():
+    for team in teamsData_dict.keys():
+        page = requests.get(URL_dict.get(team))
+        soup = BeautifulSoup(page.content, "html.parser")
+        table = soup.find("table", id="matchlogs_for")
+        rows = table.find_all("tr")
+        #print(rows)
 
-    print(f"\n{team}")
-    for row in range(1, 21):
-        result = rows[row].find("td", class_="center")
+        # getting the last 20 matches' result data for each team
+        print(f"\n{team}")
+        for row in range(1, 21):
+            result = rows[row].find("td", class_="center")
 
-        match result.text:
-            case "W":
-                teamsData.get(team).append(1)
-            case "D":
-                teamsData.get(team).append(0)
-            case "L":
-                teamsData.get(team).append(-1)
+            match result.text:
+                case "W":
+                    teamsData_dict.get(team).append(1)
+                case "D":
+                    teamsData_dict.get(team).append(0)
+                case "L":
+                    teamsData_dict.get(team).append(-1)
+            print(result.text, end=" "),
+        time.sleep(0.1)
 
-        print(result.text, end=" "),
+        #getting the scored goals for every match
+        print("")
+        for row in range(1, 21):
+            result = rows[row].find_all("td", class_="right")
+            print(result[1].text, end=" "),
 
-    time.sleep(0.1)
+            if result[1].text == "":
+                teamsData_dict.get(team).append(-1)
+            else:
+                teamsData_dict.get(team).append(int(result[1].text))
+
+        # getting the conceded goals for every match
+        print("")
+        for row in range(1, 21):
+            result = rows[row].find_all("td", class_="right")
+            print(result[2].text, end=" "),
+
+            if result[2].text == "":
+                teamsData_dict.get(team).append(-1)
+            else:
+                teamsData_dict.get(team).append(int(result[2].text))
+
+        # getting the venue for every match
+        print("")
+        for row in range(1, 21):
+            result = rows[row].find_all("td", class_="left")
+            match result[2].text:
+                case "Home":
+                    teamsData_dict.get(team).append(1)
+                    print("H", end=" "),
+                case "Away":
+                    teamsData_dict.get(team).append(-1)
+                    print("A", end=" "),

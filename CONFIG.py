@@ -1,3 +1,5 @@
+weeknumber = 21
+
 teamsData_dict = {
     "Tottenham Hotspur": [],
     "Everton": [],

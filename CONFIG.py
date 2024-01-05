@@ -45,3 +45,7 @@ URL_dict = {
     "Newcastle": "https://fbref.com/en/squads/b2b47a98/2023-2024/matchlogs/c9/schedule/Newcastle-United-Scores-and-Fixtures-Premier-League",
     "Aston Villa": "https://fbref.com/en/squads/8602292d/2023-2024/matchlogs/c9/schedule/Aston-Villa-Scores-and-Fixtures-Premier-League"
 }
+
+
+def show():
+    print(teamsData_dict)

@@ -29,10 +29,9 @@ each matchs data set is 44 length
 
 class Collector:
 
-    def __init__(self, week_index):
+    def __init__(self):
         self.fixtures = 'https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures'
         self.matches_html = 0
-        self.week_index = week_index
         self.final_data = []
 
     # look all the table rows' find the wanted week's matches

@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import CONFIG
+
 teamsData_dict = CONFIG.teamsData_dict
 URL_dict = CONFIG.URL_dict
 
@@ -13,6 +14,7 @@ dict for every team has an array of data
 [40:59] = away goals for every last matches. last match -> first match
 [60:79] = home or away for last 20 matches (-1 = Away, 1 = Home). last match -> first match
 """
+
 
 def get_datas():
     for team in teamsData_dict.keys():

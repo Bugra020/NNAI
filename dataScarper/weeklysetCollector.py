@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 import CONFIG
 teamsData_dict = CONFIG.teamsData_dict
 URL_dict = CONFIG.URL_dict
-weekdate = CONFIG.weeknumber
 
 """
 each matchs data set is 44 length
@@ -33,9 +32,10 @@ class Collector:
         self.fixtures = 'https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures'
         self.matches_html = 0
         self.final_data = []
+        self.targets = []
 
     # look all the table rows' find the wanted week's matches
-    def get_data_set(self):
+    def get_data_set(self, weekdate):
         page = requests.get(self.fixtures)
         soup = BeautifulSoup(page.content, "html.parser")
         table = soup.find("tbody")
@@ -48,14 +48,16 @@ class Collector:
 
             opposings = []  # array for teams
 
-            if game_week.text is not None:
-                if int(game_week.text) == self.week_index:
+            if game_week.text != "":
+                if int(game_week.text) == weekdate:
                     self.matches_html += 1
 
                     hometeam = row.find_all("td", class_="right")[1].find("a").text
                     time.sleep(0.5)
                     awayteam = row.find_all("td", class_="left")[2].find("a").text
                     time.sleep(0.5)
+
+                    self.get_targets(row)
 
                     match hometeam:
                         case "Nott'ham Forest":
@@ -85,15 +87,17 @@ class Collector:
                         case _:
                             opposings.append(awayteam)
 
-                    self.get_match(opposings)
+                    self.get_match(opposings, weekdate)
 
                 if self.matches_html == 10:
                     break
 
                 time.sleep(0.5)
 
+        return self.final_data
+
     # get teams' data for every match
-    def get_match(self, arg_opposings):
+    def get_match(self, arg_opposings, weekdate):
 
         opposingUrls = []
         opposingUrls.append(URL_dict.get(arg_opposings[0]))
@@ -166,3 +170,20 @@ class Collector:
             matchdata.append(avg_conceded)
 
         self.final_data.append(matchdata)
+
+    def get_training_set(self):
+        training_data = []
+        for i in range(6, 22):
+            for matchdata in self.get_data_set(i):
+                training_data.append(matchdata)
+
+        return training_data
+
+    def get_targets(self, row):
+        score = row.find("td", class_="center").find("a").text
+        if int(score[0:1]) < int(score[2]):
+            self.targets.append(-1)
+        elif int(score[0:1]) > int(score[2]):
+            self.targets.append(1)
+        else:
+            self.targets.append(0)

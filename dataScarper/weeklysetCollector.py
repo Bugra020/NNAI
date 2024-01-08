@@ -28,14 +28,13 @@ each matchs data set is 44 length
 
 class Collector:
 
-    def __init__(self):
+    def __init__(self):    # init method
         self.fixtures = 'https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures'
         self.matches_html = 0
         self.final_data = []
         self.targets = []
 
-    # look all the table rows' find the wanted week's matches
-    def get_data_set(self, weekdate):
+    def get_data_set(self, weekdate):   # getting datas for specific match week
         page = requests.get(self.fixtures)
         soup = BeautifulSoup(page.content, "html.parser")
         table = soup.find("tbody")
@@ -125,6 +124,8 @@ class Collector:
                         matchdata.append(0)
                     case "L":
                         matchdata.append(-1)
+                    case _:
+                        matchdata.append(0)
             time.sleep(0.5)
 
             # getting the scored goals for every match and average
@@ -171,7 +172,7 @@ class Collector:
 
         self.final_data.append(matchdata)
 
-    def get_training_set(self):
+    def get_training_set(self):    # getting training data
         training_data = []
         for i in range(6, 22):
             for matchdata in self.get_data_set(i):
@@ -179,11 +180,53 @@ class Collector:
 
         return training_data
 
-    def get_targets(self, row):
+    def get_targets(self, row):     # gets targets values for training data
         score = row.find("td", class_="center").find("a").text
-        if int(score[0:1]) < int(score[2]):
-            self.targets.append(-1)
+        if score == "":
+            self.targets.append(0)
         elif int(score[0:1]) > int(score[2]):
             self.targets.append(1)
+        elif int(score[0:1]) < int(score[2]):
+            self.targets.append(-1)
         else:
             self.targets.append(0)
+
+    def save(self):     # saves all training data and target datas
+        for i in range(0, len(self.final_data)):
+            self.save_set(i)
+
+        with open(f"database/training_set_targets.txt", "w") as file:
+            for target in self.targets:
+                file.write("%s\n" % target)
+
+    def save_set(self, index):  # helper method for saving
+        with open(f"database/training_set{index}.txt", "w") as file:
+            for data in self.final_data[index]:
+                file.write("%s\n" % data)
+
+    def read(self, choice):     # reads and returns targets or training datas by choice
+        # choice is targets("t") or training values("d")
+        big_set = []
+
+        if choice == "d":
+            for i in range(0, len(self.final_data)):
+                big_set.append(self.read_set(i))
+
+            return big_set
+
+        elif choice == "t":
+            with open(f"database/training_set_targets.txt", "r") as file:
+                for line in file:
+                    x = int(line[:-1])
+                    big_set.append(x)
+
+            return big_set
+
+    def read_set(self, index):    # helper method for read
+        with open(f"database/training_set{index}.txt", "r") as file:
+            x = []
+            for line in file:
+                value = float(line[:-1])
+                x.append(value)
+
+        return x

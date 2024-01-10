@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import CONFIG
+
 teamsData_dict = CONFIG.teamsData_dict
 URL_dict = CONFIG.URL_dict
 
@@ -28,13 +29,13 @@ each matchs data set is 44 length
 
 class Collector:
 
-    def __init__(self):    # init method
+    def __init__(self):  # init method
         self.fixtures = 'https://fbref.com/en/comps/9/schedule/Premier-League-Scores-and-Fixtures'
         self.matches_html = 0
         self.final_data = []
         self.targets = []
 
-    def get_data_set(self, weekdate):   # getting datas for specific match week
+    def get_data_set(self, weekdate):  # getting datas for specific match week
         page = requests.get(self.fixtures)
         soup = BeautifulSoup(page.content, "html.parser")
         table = soup.find("tbody")
@@ -52,9 +53,7 @@ class Collector:
                     self.matches_html += 1
 
                     hometeam = row.find_all("td", class_="right")[1].find("a").text
-                    time.sleep(0.5)
                     awayteam = row.find_all("td", class_="left")[2].find("a").text
-                    time.sleep(0.5)
 
                     self.get_targets(row)
 
@@ -86,17 +85,17 @@ class Collector:
                         case _:
                             opposings.append(awayteam)
 
-                    self.get_match(opposings, weekdate)
+                    self._get_match(opposings, weekdate)
 
                 if self.matches_html == 10:
                     break
 
-                time.sleep(0.5)
+                time.sleep(0.1)
 
         return self.final_data
 
     # get teams' data for every match
-    def get_match(self, arg_opposings, weekdate):
+    def _get_match(self, arg_opposings, weekdate):
 
         opposingUrls = []
         opposingUrls.append(URL_dict.get(arg_opposings[0]))
@@ -108,13 +107,12 @@ class Collector:
             page = requests.get(teamurl)
             soup1 = BeautifulSoup(page.content, "html.parser")
             table = soup1.find("table", id="matchlogs_for")
-            time.sleep(0.5)
+            time.sleep(0.1)
 
             rows = table.find_all("tr")
-            time.sleep(0.5)
 
             # getting the last 5 matches' result data for each team
-            for row in range(weekdate-5, weekdate):
+            for row in range(weekdate - 5, weekdate):
                 result = rows[row].find("td", class_="center")
 
                 match result.text:
@@ -126,11 +124,11 @@ class Collector:
                         matchdata.append(-1)
                     case _:
                         matchdata.append(0)
-            time.sleep(0.5)
+            time.sleep(0.1)
 
             # getting the scored goals for every match and average
             avg_scored = 0
-            for row in range(weekdate-5, weekdate):
+            for row in range(weekdate - 5, weekdate):
                 result = rows[row].find_all("td", class_="right")
 
                 if result[1].text == "":
@@ -140,11 +138,11 @@ class Collector:
                     matchdata.append(int(result[1].text))
                     avg_scored += int(result[1].text)
             avg_scored /= 5
-            time.sleep(0.5)
+            time.sleep(0.1)
 
             # getting the conceded goals for every match and average
             avg_conceded = 0
-            for row in range(weekdate-5, weekdate):
+            for row in range(weekdate - 5, weekdate):
                 result = rows[row].find_all("td", class_="right")
 
                 if result[2].text == "":
@@ -154,17 +152,17 @@ class Collector:
                     matchdata.append(int(result[2].text))
                     avg_conceded += int(result[2].text)
             avg_conceded /= 5
-            time.sleep(0.5)
+            time.sleep(0.1)
 
             # getting the venue for every match
-            for row in range(weekdate-5, weekdate):
+            for row in range(weekdate - 5, weekdate):
                 result = rows[row].find_all("td", class_="left")
                 match result[2].text:
                     case "Home":
                         matchdata.append(1)
                     case "Away":
                         matchdata.append(-1)
-            time.sleep(0.5)
+            time.sleep(0.1)
 
             # adding the avg goal last 5
             matchdata.append(avg_scored)
@@ -172,7 +170,7 @@ class Collector:
 
         self.final_data.append(matchdata)
 
-    def get_training_set(self):    # getting training data
+    def get_training_set(self):  # getting training data
         training_data = []
         for i in range(6, 22):
             for matchdata in self.get_data_set(i):
@@ -180,37 +178,38 @@ class Collector:
 
         return training_data
 
-    def get_targets(self, row):     # gets targets values for training data
-        score = row.find("td", class_="center").find("a").text
-        if score == "":
-            self.targets.append(0)
-        elif int(score[0:1]) > int(score[2]):
-            self.targets.append(1)
-        elif int(score[0:1]) < int(score[2]):
-            self.targets.append(-1)
+    def get_targets(self, row):  # gets targets values for training data
+        if row.find("td", class_="center").find("a") is not None:
+            score = row.find("td", class_="center").find("a").text
+            if int(score[0:1]) > int(score[2]):
+                self.targets.append(1)
+            elif int(score[0:1]) < int(score[2]):
+                self.targets.append(-1)
+            else:
+                self.targets.append(0)
         else:
             self.targets.append(0)
 
-    def save(self):     # saves all training data and target datas
+    def save(self):  # saves all training data and target datas
         for i in range(0, len(self.final_data)):
-            self.save_set(i)
+            self._save_set(i)
 
         with open(f"database/training_set_targets.txt", "w") as file:
             for target in self.targets:
                 file.write("%s\n" % target)
 
-    def save_set(self, index):  # helper method for saving
+    def _save_set(self, index):  # helper method for saving
         with open(f"database/training_set{index}.txt", "w") as file:
             for data in self.final_data[index]:
                 file.write("%s\n" % data)
 
-    def read(self, choice):     # reads and returns targets or training datas by choice
+    def read(self, choice):  # reads and returns targets or training datas by choice
         # choice is targets("t") or training values("d")
         big_set = []
 
         if choice == "d":
-            for i in range(0, len(self.final_data)):
-                big_set.append(self.read_set(i))
+            for i in range(0, 150):
+                big_set.append(self._read_set(i))
 
             return big_set
 
@@ -222,7 +221,7 @@ class Collector:
 
             return big_set
 
-    def read_set(self, index):    # helper method for read
+    def _read_set(self, index):  # helper method for read
         with open(f"database/training_set{index}.txt", "r") as file:
             x = []
             for line in file:

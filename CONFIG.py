@@ -1,3 +1,4 @@
+
 teamsData_dict = {
     "Tottenham Hotspur": [],
     "Everton": [],

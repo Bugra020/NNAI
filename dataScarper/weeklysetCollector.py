@@ -135,9 +135,9 @@ class Collector:
                     matchdata.append(-1)
                     avg_scored += -1
                 else:
-                    matchdata.append(int(result[1].text))
+                    matchdata.append(int(result[1].text) / 10)
                     avg_scored += int(result[1].text)
-            avg_scored /= 5
+            avg_scored /= 5 * 10
             time.sleep(0.1)
 
             # getting the conceded goals for every match and average
@@ -149,9 +149,9 @@ class Collector:
                     matchdata.append(-1)
                     avg_conceded += -1
                 else:
-                    matchdata.append(int(result[2].text))
+                    matchdata.append(int(result[2].text) / 10)
                     avg_conceded += int(result[2].text)
-            avg_conceded /= 5
+            avg_conceded /= 5 * 10
             time.sleep(0.1)
 
             # getting the venue for every match

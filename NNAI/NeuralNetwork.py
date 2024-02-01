@@ -127,8 +127,11 @@ class NeuralModal:
         in the end save the weights and biases to config file
         """
         cumulative_errors = []
+        correct = 0
+        cumulative_corr = 0
+        count = 0
         for i in range(0, iterations):
-            rindex = random.randint(0, len(traindata)-1)
+            rindex = random.randint(0, len(traindata) - 1)
             # input layer
             layerI_o = self._input_layer_activation(traindata[rindex])
             layerI_cost = self._layer_cost(layerI_o, targets[rindex])
@@ -144,13 +147,27 @@ class NeuralModal:
             final_cost = self._layer_cost(final_output, targets[rindex])
             self._update_final(hidden_layer_o, final_cost[0], learning_rate)
 
-            print(f"{final_output[0]}, {targets[rindex]}, {numpy.sqrt(final_cost[0])}, {i}")
-            cumulative_errors.append(final_output[0] - targets[rindex])
-        sumn = 0
-        for a in cumulative_errors:
-            sumn += a
-        avg = sumn / len(cumulative_errors)
-        print(f"\nAVARAGE LOSS: {avg}")
+            print(f"{final_output[0]}, {self._eval(final_output[0])}, {targets[rindex]}")
+
+            if self._eval(final_output[0]) == targets[rindex]:
+                correct = correct + 1
+
+            if i % 10 == 0 and i != 0:
+                print(f"{correct * 10}% ")
+                cumulative_corr += correct * 10
+                count += 1
+                correct = 0
+
+        print(f"%{cumulative_corr / count}")
+
+
+    def _eval(self, x):
+        if x < (-0.6):
+            return -1
+        if x > 0.6:
+            return 1
+        else:
+            return 0
 
     def work(self):
         pass

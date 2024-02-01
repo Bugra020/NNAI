@@ -13,6 +13,4 @@ WeekData.save()
 t = WeekData.read("t")
 d = WeekData.read("d")
 
-kuponcu.train(d, t, 0.08, 201)
-#print(kuponcu.weights)
-#print(kuponcu.biases)
+kuponcu.train(d, t, 0.01, 1241)
